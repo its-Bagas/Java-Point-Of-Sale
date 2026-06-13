@@ -21,6 +21,7 @@ public class MainMenuView extends JFrame {
 
     private ProductView productView;
     private CashierView cashierView;
+    private HistoryView historyView;
 
     public MainMenuView(ProductController pc, StockController sc, TransactionController tc) {
         this.productController = pc;
@@ -38,7 +39,7 @@ public class MainMenuView extends JFrame {
     private void initComponents() {
         setLayout(new BorderLayout());
 
-        // --- SIDEBAR (NAVBAR KIRI) ---
+        // Sidebar
         JPanel sidebarPanel = new JPanel();
         sidebarPanel.setPreferredSize(new Dimension(220, 0));
         sidebarPanel.setLayout(new BorderLayout());
@@ -74,7 +75,7 @@ public class MainMenuView extends JFrame {
         sidebarPanel.add(menuPanel, BorderLayout.CENTER);
         add(sidebarPanel, BorderLayout.WEST);
 
-        // --- MAIN CONTENT (CARD LAYOUT) ---
+        // Card Layout
         cardLayout = new CardLayout();
         mainContentPanel = new JPanel(cardLayout);
         mainContentPanel.setBackground(new Color(241, 242, 246));
@@ -82,8 +83,9 @@ public class MainMenuView extends JFrame {
         // Inisialisasi View sebagai Panel
         productView = new ProductView(productController, stockController, this);
         cashierView = new CashierView(transactionController, productController);
+        historyView = new HistoryView(transactionController, stockController);
 
-        // Panel kosong/selamat datang
+        // Panel Selamat Datang
         JPanel welcomePanel = new JPanel(new GridBagLayout());
         welcomePanel.setBackground(new Color(241, 242, 246));
         JLabel lblWelcome = new JLabel("Selamat Datang di POS SISTEM");
@@ -91,14 +93,15 @@ public class MainMenuView extends JFrame {
         lblWelcome.setForeground(new Color(87, 95, 103));
         welcomePanel.add(lblWelcome);
 
-        // Tambahkan ke CardLayout
+        // Card Panel
         mainContentPanel.add(welcomePanel, "WELCOME");
         mainContentPanel.add(productView, "PRODUCT");
         mainContentPanel.add(cashierView, "CASHIER");
+        mainContentPanel.add(historyView, "HISTORY");
 
         add(mainContentPanel, BorderLayout.CENTER);
 
-        // --- ACTION LISTENERS ---
+        // Action Button
         btnProduct.addActionListener(e -> {
             productView.refreshTable();
             cardLayout.show(mainContentPanel, "PRODUCT");
@@ -109,7 +112,10 @@ public class MainMenuView extends JFrame {
             cardLayout.show(mainContentPanel, "CASHIER");
         });
 
-        btnHistory.addActionListener(e -> showHistory());
+        btnHistory.addActionListener(e -> {
+            historyView.refreshData();
+            cardLayout.show(mainContentPanel, "HISTORY");
+        });
     }
 
     private JButton createNavButton(String text) {
@@ -118,7 +124,6 @@ public class MainMenuView extends JFrame {
         btn.setPreferredSize(new Dimension(200, 45));
         btn.setAlignmentX(Component.CENTER_ALIGNMENT);
         btn.setFocusPainted(false);
-        // FIX for Windows Look and Feel so background colors work
         btn.setUI(new javax.swing.plaf.basic.BasicButtonUI());
         btn.setBackground(new Color(72, 84, 96));
         btn.setForeground(Color.WHITE);
@@ -141,60 +146,4 @@ public class MainMenuView extends JFrame {
         return btn;
     }
 
-    private void showHistory() {
-        JDialog historyDialog = new JDialog(this, "Riwayat Sistem", true);
-        historyDialog.setSize(600, 400);
-        historyDialog.setLocationRelativeTo(this);
-
-        JTabbedPane tabbedPane = new JTabbedPane();
-        tabbedPane.setFont(new Font("Segoe UI", Font.BOLD, 14));
-
-        JPanel salesPanel = new JPanel(new BorderLayout());
-        List<Transaction> salesHistory = transactionController.getTransactionHistory();
-        StringBuilder salesSb = new StringBuilder();
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
-        if (salesHistory.isEmpty()) {
-            salesSb.append("Belum ada riwayat transaksi penjualan.");
-        } else {
-            for (Transaction t : salesHistory) {
-                salesSb.append("ID: ").append(t.getTransactionId()).append(" | ")
-                        .append("Waktu: ").append(sdf.format(t.getDate())).append(" | ")
-                        .append("Total: Rp ").append(t.getTotal()).append("\n");
-            }
-        }
-        JTextArea salesTextArea = new JTextArea(salesSb.toString());
-        salesTextArea.setFont(new Font("Consolas", Font.PLAIN, 14));
-        salesTextArea.setEditable(false);
-        salesTextArea.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        salesPanel.add(new JScrollPane(salesTextArea), BorderLayout.CENTER);
-        tabbedPane.addTab("Riwayat Penjualan", salesPanel);
-
-        // --- TAB 2: RIWAYAT OPNAME (STOCK ADJUSTMENT) ---
-        JPanel opnamePanel = new JPanel(new BorderLayout());
-        List<model.StockAdjustment> opnameHistory = stockController.getStockAdjustmentHistory();
-        StringBuilder opnameSb = new StringBuilder();
-        if (opnameHistory.isEmpty()) {
-            opnameSb.append("Belum ada riwayat penyesuaian stok (opname).");
-        } else {
-            for (model.StockAdjustment adj : opnameHistory) {
-                opnameSb.append("ID: ").append(adj.getId()).append("\n")
-                        .append("Waktu: ").append(sdf.format(adj.getDate())).append("\n")
-                        .append("Produk: ").append(adj.getProduct().getName()).append("\n")
-                        .append("Perubahan: ").append(adj.getOldStock()).append(" -> ").append(adj.getNewStock())
-                        .append(" (").append(adj.getDifference() > 0 ? "+" : "").append(adj.getDifference())
-                        .append(")\n")
-                        .append("Alasan: ").append(adj.getReason()).append("\n")
-                        .append("--------------------------------------------------\n");
-            }
-        }
-        JTextArea opnameTextArea = new JTextArea(opnameSb.toString());
-        opnameTextArea.setFont(new Font("Consolas", Font.PLAIN, 14));
-        opnameTextArea.setEditable(false);
-        opnameTextArea.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        opnamePanel.add(new JScrollPane(opnameTextArea), BorderLayout.CENTER);
-        tabbedPane.addTab("Riwayat Opname", opnamePanel);
-
-        historyDialog.add(tabbedPane);
-        historyDialog.setVisible(true);
-    }
 }

@@ -24,7 +24,7 @@ Aplikasi Kasir (Point of Sale) modern yang dibangun menggunakan Java Swing denga
 
 ### 4. Arsitektur MVC
 - **Model:** Mengatur struktur data (`Product`, `Transaction`, `TransactionItem`, `StockAdjustment`, `DataStore`).
-- **View:** Mengatur antarmuka pengguna (`MainMenuView`, `CashierView`, `ProductView`).
+- **View:** Mengatur antarmuka pengguna (`MainMenuView`, `CashierView`, `ProductView`, `HistoryView`).
 - **Controller:** Mengatur logika bisnis dan alur data (`ProductController`, `TransactionController`, `StockController`).
 
 ## Struktur Direktori
@@ -45,6 +45,7 @@ uas/
 │   │   └── TransactionItem.java
 │   ├── view/               # Antarmuka Pengguna (UI)
 │   │   ├── CashierView.java
+│   │   ├── HistoryView.java
 │   │   ├── MainMenuView.java
 │   │   └── ProductView.java
 │   └── Main.java           # Entry Point Aplikasi

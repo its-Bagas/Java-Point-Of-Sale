@@ -52,6 +52,159 @@ uas/
 └── README.md               # Dokumentasi Proyek
 ```
 
+## Diagram Class (Relasi MVC)
+Berikut adalah gambaran interaksi antar kelas (Class Diagram) beserta atribut dan metodenya dalam arsitektur sistem ini:
+
+```mermaid
+classDiagram
+    %% Bagian Controller
+    class ProductController {
+        -DataStore ds
+        +addProduct(name, price, stock, imageFile)
+        +editProduct(id, name, price, imageFile)
+        +deleteProduct(id)
+        +getAllProducts() List~Product~
+        +searchProducts(keyword) List~Product~
+    }
+    
+    class TransactionController {
+        -DataStore ds
+        +processTransaction(cart, paidAmount) Transaction
+        +generateReceipt(Transaction) String
+        +getTransactionHistory() List~Transaction~
+        +saveReceiptToFile(receiptText, id)
+    }
+    
+    class StockController {
+        -DataStore ds
+        +addStock(productId, amount)
+        +adjustStock(productId, actualStock, reason)
+        +getStockAdjustmentHistory() List~StockAdjustment~
+        +getProductsWithLowStock(threshold) List~Product~
+    }
+    
+    %% Bagian Model
+    class DataStore {
+        -List~Product~ products
+        -List~Transaction~ transactions
+        -List~StockAdjustment~ stockAdjustments
+        +getProducts()
+        +getTransactions()
+        +getStockAdjustments()
+    }
+    
+    class Product {
+        -String id
+        -String name
+        -double price
+        -int stock
+        -String imagePath
+        +getId()
+        +getName()
+        +getPrice()
+        +getStock()
+        +setStock(int)
+    }
+    
+    class Transaction {
+        -String transactionId
+        -Date date
+        -double total
+        -double change
+        -List~TransactionItem~ items
+        +getTransactionId()
+        +getTotal()
+        +getChange()
+    }
+    
+    class TransactionItem {
+        -Product product
+        -int quantity
+        -double subtotal
+        +getProduct()
+        +getQuantity()
+        +getSubtotal()
+    }
+    
+    class StockAdjustment {
+        -String id
+        -Product product
+        -int oldStock
+        -int newStock
+        -String reason
+        -Date date
+    }
+    
+    %% Bagian View
+    class MainMenuView {
+        -ProductView productView
+        -CashierView cashierView
+        -HistoryView historyView
+        +initComponents()
+    }
+    
+    class ProductView {
+        -ProductController controller
+        -StockController stockController
+        -JTable table
+        +refreshTable()
+        -showProductDialog()
+        -showOpnameDialog()
+    }
+    
+    class CashierView {
+        -TransactionController transactionController
+        -ProductController productController
+        -JTable cartTable
+        -List~TransactionItem~ cart
+        +refreshData()
+        -addToCart()
+        -processPayment()
+    }
+    
+    class HistoryView {
+        -TransactionController transactionController
+        -StockController stockController
+        -JTextArea salesTextArea
+        -JTextArea opnameTextArea
+        +refreshData()
+    }
+
+    %% Relasi View ke Controller (View mengirim input pengguna ke Controller)
+    MainMenuView --> ProductController : uses
+    MainMenuView --> TransactionController : uses
+    MainMenuView --> StockController : uses
+    
+    ProductView --> ProductController : uses
+    ProductView --> StockController : uses
+    
+    CashierView --> TransactionController : uses
+    CashierView --> ProductController : uses
+    
+    HistoryView --> TransactionController : uses
+    HistoryView --> StockController : uses
+    
+    %% Komposisi Antar View
+    MainMenuView *-- ProductView : contains
+    MainMenuView *-- CashierView : contains
+    MainMenuView *-- HistoryView : contains
+
+    %% Relasi Controller ke DataStore (Controller memanipulasi Model)
+    ProductController --> DataStore : updates/reads
+    TransactionController --> DataStore : updates/reads
+    StockController --> DataStore : updates/reads
+
+    %% Relasi DataStore ke Entitas
+    DataStore *-- Product : stores
+    DataStore *-- Transaction : stores
+    DataStore *-- StockAdjustment : stores
+    
+    %% Relasi Entitas
+    Transaction *-- TransactionItem : has many
+    TransactionItem --> Product : references
+    StockAdjustment --> Product : references
+```
+
 ## Cara Menjalankan Aplikasi
 
 1. **Prasyarat:** Pastikan Anda sudah menginstal Java Development Kit (JDK) minimal versi 8.
